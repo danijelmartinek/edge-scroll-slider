@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Edge Scroll Slider</title>
+  <meta name="description" content="Edge to edge scroll page slider.">
+  <meta name="viewport" content="width=device-width">
+
+  <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+
+        .edge_slider_section:nth-of-type(1){
+        background-color: blue;
+        }
+        .edge_slider_section:nth-of-type(2){
+        background-color: red;
+        }
+        .edge_slider_section:nth-of-type(3){
+        background-color: green;
+        }
+        .edge_slider_section:nth-of-type(4){
+        background-color: pink;
+        }
+        .edge_slider_section:nth-of-type(5){
+        background-color: orange;
+        }
+        .edge_slider_section:nth-of-type(6){
+        background-color: cyan;
+        }
+        .edge_slider_section:nth-of-type(7){
+        background-color: gray;
+        }
+
+  </style>
+</head>
+<body>
+
+    <span class="edge_slider_container">
+        <span class="edge_slider_section"></span>
+        <div class="edge_slider_section"></div>
+        <div class="edge_slider_section"></div>
+        <div class="edge_slider_section"></div>
+        <div class="edge_slider_section"></div>
+        <div class="edge_slider_section"></div>     
+    </span>
+
+    <script src="hamster.js"></script>
+    <script>
+
+        //Settings
+
+        sliderOptions = {
+            sliderContainerClass: "edge_slider_container", //slider container class
+            sliderSectionClass: "edge_slider_section", //class of sections
+            sliderDirection: "vertical", //or horizontal
+            sliderScrollSpeed: 20, //must be greater than 0 and less than 21
+            sliderTransitionSpeed: 1000
+        }
+
+        
+        var defaultContainerStyle = {
+            width: "100vw",
+            height: "100vh" 
+        }
+
+        var defaultSectionStyle = {
+            position: "fixed",
+            width: "100vw",
+            height: "100vh" 
+        }
+
+
+//------------------------------------------------------------------------------------------
+
+        //Getting elements
+
+        if(document.getElementsByClassName(sliderOptions.sliderContainerClass)[0] != null){
+            var slider = document.getElementsByClassName(sliderOptions.sliderContainerClass)[0]
+        }else if(document.getElementsByClassName("edge_slider_container")[0] != null){
+            var slider = document.getElementsByClassName("edge_slider_container")[0]
+        }else{
+            console.error("Please include slider container element.")
+        }
+
+        if(document.getElementsByClassName(sliderOptions.sliderSectionClass)[0] != null){
+            var sectionsHTML = document.getElementsByClassName(sliderOptions.sliderSectionClass)
+        }else if(document.getElementsByClassName("edge_slider_section")[0] != null){
+            var sectionsHTML = document.getElementsByClassName("edge_slider_section")
+        }else{
+            console.error("Please include at least one slider section element.")
+        }
+
+        Object.assign(slider.style, defaultContainerStyle);
+
+
+//------------------------------------------------------------------------------------------
+
+        //Working with sections
+        
+        var sections = []
+        var sectionsOffsets = []
+        var i = 0
+
+        Array.prototype.forEach.call(sectionsHTML, function(el) {
+            sections[i] = el
+            sectionsOffsets[i] = 100 * i //saving initial offset for each section in array (100 == 100vh == 100% of screen height)
+            i++
+        });
+        
+
+        if(sliderOptions.sliderTransitionSpeed > 1){
+            var sliderTransitionSpeed = sliderOptions.sliderTransitionSpeed
+        }else{
+            var sliderTransitionSpeed = 1000 //default slider transition speed
+        }
+
+        
+        //setting up initial offset of each section
+        sections.forEach(function(section, index) {
+            if(sliderOptions.sliderDirection === "horizontal"){
+                section.style.marginLeft = 100 * index  + "vw"
+            }else{
+                section.style.marginTop = 100 * index  + "vh"
+            }
+            
+            Object.assign(section.style, defaultSectionStyle);
+        });
+        
+        //set after 100ms to prevent sections transitions on page load
+        setTimeout(function(){ 
+            sections.forEach(function(section, index) {
+                section.style.transition = (sliderTransitionSpeed / 1000) + "s" + " ease"
+            });
+         }, 100);
+
+
+//------------------------------------------------------------------------------------------
+
+        //Functions for moving sections
+
+        //triggering when scrolling UP
+        function plusTopOffset() {
+            sections.forEach(function(section, i) {
+                
+                sectionsOffsets[i] = sectionsOffsets[i] + 100
+
+                if(sliderOptions.sliderDirection === "horizontal"){
+                    section.style.marginLeft = sectionsOffsets[i]  + "vw"
+                }else{
+                    section.style.marginTop = sectionsOffsets[i]  + "vh"
+                }
+            })
+        }
+        
+        //triggering when scrolling DOWN
+        function minusTopOffset() {
+            sections.forEach(function(section, i) {
+                
+                sectionsOffsets[i] = sectionsOffsets[i] - 100
+                
+                if(sliderOptions.sliderDirection === "horizontal"){
+                    section.style.marginLeft = sectionsOffsets[i]  + "vw"
+                }else{
+                    section.style.marginTop = sectionsOffsets[i]  + "vh"
+                }
+            })
+        }
+
+
+//------------------------------------------------------------------------------------------
+
+        //Scroll event listener and handling events
+
+        var scrollIteration = 1
+
+        var downLimmit = scrollIteration - sections.length //allows blocking after last section
+
+        
+        if(sliderOptions.sliderScrollSpeed > 0 && sliderOptions.sliderScrollSpeed < 21){
+            var mouseWheelSlideTriggerLimit = sliderOptions.sliderScrollSpeed
+        }else{
+            var mouseWheelSlideTriggerLimit = 20; //default slider scroll speed
+        }
+
+        var mouseWheelSlideTriggerCounter = 20;
+
+        Hamster(slider).wheel(function(event, delta, deltaX, deltaY){
+
+        if(mouseWheelSlideTriggerCounter < mouseWheelSlideTriggerLimit){
+
+            if (delta > 0 && scrollIteration < 1 ) {
+                plusTopOffset()
+                scrollIteration++
+            } else if (delta < 0 && (scrollIteration - 1) > downLimmit) {
+                minusTopOffset()
+                scrollIteration--
+            }
+
+            mouseWheelSlideTriggerCounter = 20
+
+        }else{
+            mouseWheelSlideTriggerCounter--
+        }
+
+        });
+        
+    </script>
+</body>
+</html>
