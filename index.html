@@ -39,7 +39,6 @@
 <body>
 
     <span class="edge_slider_container">
-        <span class="edge_slider_section"></span>
         <div class="edge_slider_section"></div>
         <div class="edge_slider_section"></div>
         <div class="edge_slider_section"></div>
@@ -52,13 +51,32 @@
 
         //Settings
 
-        sliderOptions = {
+        var sliderOptions = {
             sliderContainerClass: "edge_slider_container", //slider container class
             sliderSectionClass: "edge_slider_section", //class of sections
             sliderDirection: "vertical", //or horizontal
             sliderScrollSpeed: 20, //must be greater than 0 and less than 21
             sliderTransitionSpeed: 1000
         }
+
+
+
+
+        //dummy functions for sliderFunctions object
+        function sf1(a, b){return 0}
+        function sf2(a, b){return 0}
+        function sf3(a, b){return 0}
+        function sf4(a, b){return 0}
+
+        var sliderFunctions = {
+            beforeScrollUp: sf1,
+            afterScrollUp: sf2,
+            beforeScrollDown: sf3,
+            afterScrollDown: sf4,
+            preventFunctionsOverlapping: true
+        }
+
+
 
         
         var defaultContainerStyle = {
@@ -138,19 +156,38 @@
 
 
 //------------------------------------------------------------------------------------------
+         
 
         //Functions for moving sections
+         
+        var functionsOverlappingIndex = 0 //handler for preventing functions overlapping
 
         //triggering when scrolling UP
         function plusTopOffset() {
             sections.forEach(function(section, i) {
                 
                 sectionsOffsets[i] = sectionsOffsets[i] + 100
+                
+                //before scroll up function trigger
+                if(sectionsOffsets[i] == 0 && functionsOverlappingIndex != 1){
+                    sliderFunctions.beforeScrollUp(section, i)
+                }
 
                 if(sliderOptions.sliderDirection === "horizontal"){
                     section.style.marginLeft = sectionsOffsets[i]  + "vw"
                 }else{
                     section.style.marginTop = sectionsOffsets[i]  + "vh"
+                }
+                
+                //after scroll up function trigger
+                if(sectionsOffsets[i] == 0 && functionsOverlappingIndex != 1){
+                    if(sliderFunctions.preventFunctionsOverlapping == true){
+                        functionsOverlappingIndex = 1
+                    }
+                    setTimeout(function(){ 
+                        sliderFunctions.afterScrollUp(section, i)
+                        functionsOverlappingIndex = 0
+                    }, sliderOptions.sliderTransitionSpeed); //countdown timer
                 }
             })
         }
@@ -161,10 +198,26 @@
                 
                 sectionsOffsets[i] = sectionsOffsets[i] - 100
                 
+                //before scroll down function trigger
+                if(sectionsOffsets[i] == 0 && functionsOverlappingIndex != 1){
+                    sliderFunctions.beforeScrollDown(section, i)
+                }
+                
                 if(sliderOptions.sliderDirection === "horizontal"){
                     section.style.marginLeft = sectionsOffsets[i]  + "vw"
                 }else{
                     section.style.marginTop = sectionsOffsets[i]  + "vh"
+                }
+                
+                //after scroll down function trigger
+                if(sectionsOffsets[i] == 0 && functionsOverlappingIndex != 1){
+                    if(sliderFunctions.preventFunctionsOverlapping == true){
+                        functionsOverlappingIndex = 1
+                    }
+                    setTimeout(function(){ 
+                        sliderFunctions.afterScrollDown(section, i)
+                        functionsOverlappingIndex = 0
+                    }, sliderOptions.sliderTransitionSpeed); //countdown timer
                 }
             })
         }
